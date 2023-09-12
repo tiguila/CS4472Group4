@@ -1,79 +1,39 @@
-
-
-/** Pseudocodo
-function task5(S)
-	team5Result = sign the message (using Alince's (e, n) public key)
-	return team5Result == S
-*/
-
-
-
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <openssl/bn.h>
-#include <openssl/sha.h>
-
-// Define Alice's public key values
-const char *e_hex = "010001";
-const char *n_hex = "AE1CD4DC432798D933779FBD46C6E1247F0CF1233595113AA51B450F18116115";
-
-// Function to convert hexadecimal string to BIGNUM
-BIGNUM *hex_to_bn(const char *hex) {
-    BIGNUM *bn = NULL;
-    BN_hex2bn(&bn, hex);
-    return bn;
+#define NBITS 256
+void printBN(char *msg, BIGNUM * a)
+{
+    /* Use BN_bn2hex(a) for hex string
+    * Use BN_bn2dec(a) for decimal string */
+    char * number_str = BN_bn2hex(a);
+    printf("%s %s\n", msg, number_str);
+    OPENSSL_free(number_str);
 }
 
-// Function to verify the signature
-int verify_signature(const char *message, const char *signature_hex, const char *e_hex, const char *n_hex) {
+int main ()
+{
+    BN_CTX *ctx = BN_CTX_new();
+    BIGNUM *m = BN_new();
+    BIGNUM *s = BN_new();
+    BIGNUM *e = BN_new();
+    BIGNUM *n = BN_new();
+    BIGNUM *res = BN_new();
+
+    // hex to big number
+    BN_hex2bn(&m, "4c61756e63682061206d697373696c65");
+    BN_hex2bn(&s, "643D6F34902D9C7EC90CB0B2BCA36C47FA37165C0005CAB026C0542CBDB6802F");
+    BN_hex2bn(&e, "010001");
+    BN_hex2bn(&n, "AE1CD4DC432798D933779FBD46C6E1247F0CF1233595113AA51B450F18116115"); // python -c 'print("Launch a missile".encode("hex"))'
     
-    // Convert e and n to BIGNUM
-    BIGNUM *e = hex_to_bn(e_hex);
-    BIGNUM *n = hex_to_bn(n_hex);
-
-    // Convert the hexadecimal signature to a BIGNUM
-    BIGNUM *signature_bn = hex_to_bn(signature_hex);
-
-    // Decrypt the signature using Alice's public key
-    BIGNUM *decrypted_signature = BN_new();
-    BN_mod_exp(decrypted_signature, signature_bn, e, n, NULL);
-
-    // Convert the decrypted signature to a hexadecimal string
-    char *decrypted_signature_hex = BN_bn2hex(decrypted_signature);
-
-    // Calculate the hash of the original message and compare it with the decrypted signature
-    unsigned char hash[20]; // SHA-1 hash
-    SHA1((const unsigned char *)message, strlen(message), hash);
-
-    // Convert the hash to a BIGNUM
-    BIGNUM *hash_bn = BN_bin2bn(hash, 20, NULL);
-
-    // Compare the hash with the decrypted signature
-    int result = BN_cmp(decrypted_signature, hash_bn);
-
-    // Free memory
-    // BN_free(e);
-    // BN_free(n);
-    // BN_free(signature_bn);
-    // BN_free(decrypted_signature);
-    // BN_free(hash_bn);
-    // OPENSSL_free(decrypted_signature_hex);
-
-    return result == 0;
-}
-
-int main() {
-    const char *message = "Launch a missile.";
-    const char *signature_hex = "643D6F34902D9C7EC90CB0B2BCA36C47FA37165C0005CAB026C0542CBDB6802F";
-
-    int result = verify_signature(message, signature_hex, e_hex, n_hex);
-
-    if (result) {
-        printf("Signature is valid.\n");
-    } else {
-        printf("Signature is not valid.\n");
-    }
-
+    
+    // s^e mod n
+    BN_mod_exp(res, s, e, n, ctx);
+    printBN("Decrypted message in big number: ", res);
+    printBN("s: ", s);
+    OPENSSL_free(ctx);
+    OPENSSL_free(m);
+    OPENSSL_free(e);
+    OPENSSL_free(n);
+    
     return 0;
 }
