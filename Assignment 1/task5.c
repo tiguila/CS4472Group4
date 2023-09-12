@@ -20,19 +20,26 @@ int main ()
     BIGNUM *res = BN_new();
 
     // hex to big number
-    BN_hex2bn(&m, "4c61756e63682061206d697373696c65");
+    BN_hex2bn(&m, "4c61756e63682061206d697373696c65"); // python -c 'print("Launch a missile".encode("hex"))'
     BN_hex2bn(&s, "643D6F34902D9C7EC90CB0B2BCA36C47FA37165C0005CAB026C0542CBDB6802F");
     BN_hex2bn(&e, "010001");
-    BN_hex2bn(&n, "AE1CD4DC432798D933779FBD46C6E1247F0CF1233595113AA51B450F18116115"); // python -c 'print("Launch a missile".encode("hex"))'
-    
-    
-    // s^e mod n
-    BN_mod_exp(res, s, e, n, ctx);
-    printBN("Decrypted message in big number: ", res);
-    printBN("s: ", s);
+    BN_hex2bn(&n, "AE1CD4DC432798D933779FBD46C6E1247F0CF1233595113AA51B450F18116115"); 
+        
+    // res = m^e mod n
+    BN_mod_exp(res, m, e, n, ctx);
+
+
+    int cmp_result = BN_cmp(res, s); // Compare Alice's signature with our result , res
+    if (cmp_result == 0) {
+        printf("The signature is indeed Alice’s\n");
+    } else {
+        printf("NO, the signature is not Alice’s\n");
+    }
+    printBN("Our signature when signing Alice's message: ", res);
+    printBN("Alice's signature:                          ", s);
+
     OPENSSL_free(ctx);
     OPENSSL_free(m);
-    OPENSSL_free(e);
     OPENSSL_free(n);
     
     return 0;
