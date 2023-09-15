@@ -20,7 +20,7 @@ void compare( BIGNUM * a, BIGNUM * b )
         printf("NO, the signature is not Alice’s\n");
     }
     printBN("signature decrypted: ", a);
-    printBN("message:                  ", b);
+    printBN("message:             ", b);
 }
 
 int main ()
@@ -35,8 +35,12 @@ int main ()
     BIGNUM *res2 = BN_new();
 
     // decimal to big number
+    
     BN_hex2bn(&m, "4c61756e63682061206d697373696c652e");
-    BN_hex2bn(&s, "643D6F34902D9C7EC90CB0B2BCA36C47FA37165C0005CAB026C0542CBDB6802F");
+    BN_hex2bn(&s,  "643D6F34902D9C7EC90CB0B2BCA36C47FA37165C0005CAB026C0542CBDB6802F");
+    
+
+    
     BN_hex2bn(&cs, "643D6F34902D9C7EC90CB0B2BCA36C47FA37165C0005CAB026C0542CBDB6803F");//corrupted signature
     BN_hex2bn(&e, "010001");
     BN_hex2bn(&n, "AE1CD4DC432798D933779FBD46C6E1247F0CF1233595113AA51B450F18116115");
@@ -47,12 +51,20 @@ int main ()
     // res2 = cs^e mod n
     BN_mod_exp(res2, cs, e, n, ctx);
 
+    printf("\nVerifying original message signature.\n");
     compare(res,m);// comparing the decrypted signature with the message 
+
+    printf("\nVerifying corrupted message signature.\n");
     compare(res2,m); // comparing the decrypted corrupted signature with the message 
 
     BN_CTX_free(ctx);
     BN_free(m);
+    BN_free(s);
+    BN_free(cs);
+    BN_free(e);
     BN_free(n);
+    BN_free(res);
+    BN_free(res2);
     
     return 0;
 }
